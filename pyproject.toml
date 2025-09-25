@@ -9,7 +9,7 @@ description = "Parse SARIF from GHAS and generate triage, remediation, and compl
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "dev name", email = "dev email" }]
+authors = [{ name = "Your Name", email = "you@example.com" }]
 dependencies = [
   "openai>=1.40.0",
   "python-dotenv>=1.0.1",

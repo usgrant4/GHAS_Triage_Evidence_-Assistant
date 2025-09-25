@@ -1,4 +1,6 @@
-import os, time, json
+import os
+import time
+import json
 from typing import Dict, Any
 from openai import OpenAI
 from .prompts import SYSTEM_PROMPT, build_user_payload
@@ -17,35 +19,27 @@ class LLM:
         user = build_user_payload(findings)
         for backoff in [1, 2, 4]:
             try:
-                resp = self.client.responses.create(
+                # Corrected API call and response parsing
+                resp = self.client.chat.completions.create(
                     model=MODEL,
-                    input=[
+                    messages=[
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": json.dumps(user)}
                     ],
                     response_format={"type": "json_object"},
                     timeout=TIMEOUT,
                 )
-                # SDK returns a rich object; extract text safely
-                text = getattr(resp, "output_text", None) or getattr(resp, "content", None)
-                if hasattr(resp, "to_dict"):
-                    data = resp.to_dict()
-                    # Try to find JSON in top-level or text content
-                    if isinstance(text, str):
-                        try:
-                            return json.loads(text)
-                        except Exception:
-                            pass
-                    # Fall back to generic mapping
-                    return data
-                # If we only have text, parse JSON
-                if isinstance(text, str):
-                    return json.loads(text)
-                raise RuntimeError("Unexpected response format from OpenAI.")
+                # Extract the JSON content from the modern response structure
+                content = resp.choices[0].message.content
+                if content:
+                    return json.loads(content)
+
+                raise RuntimeError("OpenAI response was empty.")
             except Exception as e:
                 print(f"OpenAI API call failed with error: {e}")
 
                 if "insufficient_quota" in str(e).lower():
                     raise
                 time.sleep(backoff)
+        
         raise RuntimeError("LLM call failed after retries")

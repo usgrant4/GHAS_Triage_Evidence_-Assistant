@@ -81,27 +81,24 @@ jobs:
                   # Set the step output
                   echo "path=${SARIF_PATH}" >> "$GITHUB_OUTPUT"
 
-              - name: Generate triage report
-                env:
-                  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-                run: |
-                  set -euo pipefail
-                  python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md
+    - name: Generate triage report
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        set -euo pipefail
+        python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md
 
-              - name: Upload triage artifacts
-                uses: actions/upload-artifact@v4
-                with:
-                  name: ghas-triage
-                  path: |
-                    triage.json
-                    triage.md
-              
-              # NOTE: The 'gh auth' step was removed as it is redundant.
-              # The runner automatically authenticates the gh CLI.
+    - name: Upload triage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ghas-triage
+        path: |
+          triage.json
+          triage.md
 
-              - name: Post or update triage summary comment
-                env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                run: |
-                  set -euo pipefail
-                  python -m triage.sticky_comment triage.md
+    - name: Post or update triage summary comment
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        python -m triage.sticky_comment triage.md

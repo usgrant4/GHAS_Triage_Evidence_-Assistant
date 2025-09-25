@@ -7,7 +7,7 @@ A practical DevSecOps helper that ingests GitHub Advanced Security (GHAS) **SARI
 - Audit‑friendly compliance evidence (e.g., NIST ISO‑style language)
 - A single “sticky” PR comment that stays updated on each run
 
-This project is designed to be **fast, inexpensive, and unobtrusive**. It processes only the minimum SARIF fields needed, deduplicates findings, batches prompt calls, and posts a compact summary to the PR while storing full details as artifacts.
+This project is designed to be **fast, inexpensive, and unobtrusive**. It processes only the minimum SARIF fields needed, deduplicates findings, batches prompt calls, and posts a compact summary to the PR while storing full details as artifacts efficiently.
 
 
 ## Why this exists

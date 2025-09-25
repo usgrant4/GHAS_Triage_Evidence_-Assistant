@@ -62,7 +62,11 @@ jobs:
                     {
                       "physicalLocation": {
                         "artifactLocation": { "uri": "src/db.py" },
-                        "region": { "startLine": 42 }
+                        "region": { "startLine": 42 },
+                        "startLine": 42,
+                        "snippet": {
+                          "text": ""
+                        }
                       }
                     }
                   ]

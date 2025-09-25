@@ -28,35 +28,37 @@ jobs:
         id: sarif
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           SARIF=$(git ls-files '**/*.sarif' | head -n 1 || true)
+
           if [ -z "$SARIF" ]; then
             mkdir -p sarif
             cat > sarif/sample.sarif <<'JSON'
+{
+  "runs": [
+    {
+      "tool": { "driver": { "name": "SampleScanner", "rules": [ { "id": "SAMPLE001" } ] } },
+      "results": [
+        {
+          "ruleId": "SAMPLE001",
+          "message": { "text": "Potential SQL Injection in query builder." },
+          "locations": [
             {
-              "runs": [
-                {
-                  "tool": { "driver": { "name": "SampleScanner", "rules": [ { "id": "SAMPLE001" } ] } },
-                  "results": [
-                    {
-                      "ruleId": "SAMPLE001",
-                      "message": { "text": "Potential SQL Injection in query builder." },
-                      "locations": [
-                        {
-                          "physicalLocation": {
-                            "artifactLocation": { "uri": "src/db.py" },
-                            "region": { "startLine": 42, "snippet": { "text": "cursor.execute('SELECT * FROM users WHERE id=' + user_input)" } }
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/db.py" },
+                "region": { "startLine": 42, "snippet": { "text": "cursor.execute('SELECT * FROM users WHERE id=' + user_input)" } }
+              }
             }
-            JSON
+          ]
+        }
+      ]
+    }
+  ]
+}
+JSON
             SARIF="sarif/sample.sarif"
           fi
+
           echo "path=$SARIF" >> "$GITHUB_OUTPUT"
 
       - name: Generate triage

@@ -9,6 +9,7 @@ A practical DevSecOps helper that ingests GitHub Advanced Security (GHAS) **SARI
 
 This project is designed to be **fast, inexpensive, and unobtrusive**. It processes only the minimum SARIF fields needed, deduplicates findings, batches prompt calls, and posts a compact summary to the PR while storing full details as artifacts efficiently.
 
+This automates security triage by bringing AI-powered analysis directly into the development process. Instead of manually digging through security reports, teams get an immediate, prioritized summary of potential vulnerabilities posted as a comment on every pull request. This allows developers and reviewers to quickly assess the security impact of their changes, fix issues faster, and make security a seamless part of their daily routine.
 
 ## Why this exists
 

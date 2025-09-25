@@ -1,4 +1,5 @@
 name: GHAS Triage
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -13,23 +14,57 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-      - name: Generate triage
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Locate SARIF or create a sample
+        id: sarif
+        shell: bash
         run: |
           set -e
           SARIF=$(git ls-files '**/*.sarif' | head -n 1 || true)
           if [ -z "$SARIF" ]; then
+            mkdir -p sarif
+            cat > sarif/sample.sarif <<'JSON'
+            {
+              "runs": [
+                {
+                  "tool": { "driver": { "name": "SampleScanner", "rules": [ { "id": "SAMPLE001" } ] } },
+                  "results": [
+                    {
+                      "ruleId": "SAMPLE001",
+                      "message": { "text": "Potential SQL Injection in query builder." },
+                      "locations": [
+                        {
+                          "physicalLocation": {
+                            "artifactLocation": { "uri": "src/db.py" },
+                            "region": { "startLine": 42, "snippet": { "text": "cursor.execute('SELECT * FROM users WHERE id=' + user_input)" } }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            JSON
             SARIF="sarif/sample.sarif"
           fi
-          python -m triage.cli "$SARIF" --out-json triage.json --out-md triage.md
+          echo "path=$SARIF" >> "$GITHUB_OUTPUT"
+
+      - name: Generate triage
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -37,6 +72,12 @@ jobs:
           path: |
             triage.json
             triage.md
+
+      - name: Authenticate gh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | gh auth login --with-token
+
       - name: Post or update sticky comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

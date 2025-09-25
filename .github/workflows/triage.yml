@@ -83,7 +83,7 @@ jobs:
 
     - name: Generate triage report
       env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} ## Update to use OPENAI_API_KEY
       run: |
         set -euo pipefail
         python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md

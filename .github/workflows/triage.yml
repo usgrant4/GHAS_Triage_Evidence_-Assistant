@@ -12,6 +12,7 @@ permissions:
 jobs:
   triage:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,57 +30,57 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SARIF=$(git ls-files '**/*.sarif' | head -n 1 || true)
 
-          if [ -z "$SARIF" ]; then
+          # Try to find any SARIF committed in the repo
+          SARIF="$(git ls-files '**/*.sarif' | head -n 1 || true)"
+
+          if [ -z "${SARIF:-}" ]; then
             mkdir -p sarif
-            python - <<'PY'
-                    import json, os, pathlib
-                    pathlib.Path("sarif").mkdir(exist_ok=True)
-                    data = {
-                      "runs": [{
-                        "tool": {"driver": {"name": "SampleScanner", "rules": [{"id": "SAMPLE001"}]}},
-                        "results": [{
-                          "ruleId": "SAMPLE001",
-                          "message": {"text": "Potential SQL Injection in query builder."},
-                          "locations": [{
-                            "physicalLocation": {
-                              "artifactLocation": {"uri": "src/db.py"},
-                              "region": {"startLine": 42, "snippet": {"text": "cursor.execute('SELECT * FROM users WHERE id=' + user_input)"}}
-                            }
-                          }]
-                        }]
-                      }]
-                    }
-                    with open("sarif/sample.sarif", "w", encoding="utf-8") as f:
-                        json.dump(data, f)
-                    PY
-                                SARIF="sarif/sample.sarif"
-                              fi
+            # Write a minimal sample SARIF without heredocs or inline Python
+            printf '%s\n' \
+              '{' \
+              '  "runs": [{' \
+              '    "tool": { "driver": { "name": "SampleScanner", "rules": [{ "id": "SAMPLE001" }] } },' \
+              '    "results": [{' \
+              '      "ruleId": "SAMPLE001",' \
+              '      "message": { "text": "Potential SQL Injection in query builder." },' \
+              '      "locations": [{' \
+              '        "physicalLocation": {' \
+              '          "artifactLocation": { "uri": "src/db.py" },' \
+              '          "region": { "startLine": 42, "snippet": { "text": "cursor.execute('\''SELECT * FROM users WHERE id='\'' + user_input)" } }' \
+              '        }' \
+              '      ]' \
+              '    }]' \
+              '  ]' \
+              '}' \
+            > sarif/sample.sarif
+            SARIF="sarif/sample.sarif"
+          fi
 
-                              echo "path=$SARIF" >> "$GITHUB_OUTPUT"
+          echo "path=${SARIF}" >> "$GITHUB_OUTPUT"
 
-                          - name: Generate triage
-                            env:
-                              OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-                            run: |
-                              python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md
+      - name: Generate triage
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          python -m triage.cli "${{ steps.sarif.outputs.path }}" --out-json triage.json --out-md triage.md
 
-                          - name: Upload artifacts
-                            uses: actions/upload-artifact@v4
-                            with:
-                              name: ghas-triage
-                              path: |
-                                triage.json
-                                triage.md
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghas-triage
+          path: |
+            triage.json
+            triage.md
 
-                          - name: Authenticate gh
-                            env:
-                              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                            run: echo "$GITHUB_TOKEN" | gh auth login --with-token
+      - name: Authenticate gh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | gh auth login --with-token
 
-                          - name: Post or update sticky comment
-                            env:
-                              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                            run: |
-                              python -m triage.sticky_comment triage.md
+      - name: Post or update sticky comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m triage.sticky_comment triage.md

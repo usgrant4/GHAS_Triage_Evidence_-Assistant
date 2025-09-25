@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ghas-triage-assistant"
+version = "0.1.0"
+description = "Parse SARIF from GHAS and generate triage, remediation, and compliance evidence with OpenAI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Your Name", email = "you@example.com" }]
+dependencies = [
+  "openai>=1.40.0",
+  "python-dotenv>=1.0.1",
+  "fastapi>=0.111.0",
+  "uvicorn[standard]>=0.29.0",
+  "typer>=0.12.3",
+  "pydantic>=2.7.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.1.0", "pytest-cov>=5.0.0", "black>=24.3.0", "ruff>=0.4.0"]
+all = ["ghas-triage-assistant[dev]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100

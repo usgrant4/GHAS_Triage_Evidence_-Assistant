@@ -20,7 +20,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-      - name: Generate triage (sample if no SARIF present)
+      - name: Generate triage
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -29,7 +29,7 @@ jobs:
           if [ -z "$SARIF" ]; then
             SARIF="sarif/sample.sarif"
           fi
-          python -m triage.cli "$SARIF" --out_json triage.json --out_md triage.md
+          python -m triage.cli "$SARIF" --out-json triage.json --out-md triage.md
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

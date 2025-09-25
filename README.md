@@ -313,3 +313,11 @@ README.md
 ## License
 
 MIT
+
+---
+
+**Ulysses Grant, IV**  
+[LinkedIn](https://www.linkedin.com/in/usgrant4/) 
+[GitHub](https://github.com/usgrant4)
+
+---

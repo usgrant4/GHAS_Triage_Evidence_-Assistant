@@ -43,6 +43,8 @@ class LLM:
                     return json.loads(text)
                 raise RuntimeError("Unexpected response format from OpenAI.")
             except Exception as e:
+                print(f"OpenAI API call failed with error: {e}")
+
                 if "insufficient_quota" in str(e).lower():
                     raise
                 time.sleep(backoff)

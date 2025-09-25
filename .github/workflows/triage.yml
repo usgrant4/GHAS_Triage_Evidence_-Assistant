@@ -43,38 +43,39 @@ jobs:
           mkdir -p sarif
           SARIF_PATH="sarif/sample.sarif"
           # Use a heredoc for cleaner JSON definition.
-          cat <<EOF > "${SARIF_PATH}"
-        {
-          "version": "2.1.0",
-          "runs": [
-            {
-              "tool": {
-                "driver": {
-                  "name": "SampleScanner",
-                  "rules": [ { "id": "SAMPLE001" } ]
-                }
-              },
-              "results": [
-                {
-                  "ruleId": "SAMPLE001",
-                  "message": { "text": "Potential SQL Injection in query builder." },
-                  "locations": [
-                    {
-                      "physicalLocation": {
-                        "artifactLocation": { "uri": "src/db.py" },
-                        "region": { "startLine": 42 },
-                        "startLine": 42,
-                        "snippet": {
-                          "text": ""
-                        }
+              cat <<EOF > "${SARIF_PATH}"
+              {
+                "version": "2.1.0",
+                "runs": [
+                  {
+                    "tool": {
+                      "driver": {
+                        "name": "SampleScanner",
+                        "rules": [ { "id": "SAMPLE001" } ]
                       }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
+                    },
+                    "results": [
+                      {
+                        "ruleId": "SAMPLE001",
+                        "message": { "text": "Potential SQL Injection in query builder." },
+                        "locations": [
+                          {
+                            "physicalLocation": {
+                              "artifactLocation": { "uri": "src/db.py" },
+                              "region": {
+                                "startLine": 42,
+                                "snippet": {
+                                  "text": ""
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
         EOF
                   fi
 
